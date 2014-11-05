@@ -57,35 +57,36 @@ if(isset($uname))
         $stu_pidm = $student_info[0]['PIDM'];
 
         $schd_info = array();
-	$local_oracle->getFYCourses($schd_info, $stu_pidm);
+	$local_oracle1->getFYCourses($schd_info, $stu_pidm);
 
-	$spring = array();
-	$local_mysql->getMyEnrollments($spring, $uname, $spring_code);
+	//	print_r($schd_info);
 
-	$j = sizeof($schd_info);
-	for ($i = 0; $i < sizeof($spring); $i++) {
-	  $crns = array($spring[$i]['crn']);
-	  $courses = array();
-	  $course_class->getCoursesByCRN($courses , $spring[$i]['term'], $crns, $additional);
-	  $schd_info[$j]['crn'] = $courses[0]['CRN'];
-	  $schd_info[$j]['term_desc'] = 'Spring 2015';
-	  $schd_info[$j]['course'] = $courses[0]['SUBJ_CODE'] . ' ' .
-	    $courses[0]['CRSE_NUMBER'] . ' ' .
-	    $courses[0]['SECTION_NUMBER'];
-	  $schd_info[$j]['title'] = $courses[0]['LONG_TITLE'];
-	  $schd_info[$j]['credit_hours'] = $courses[0]['CREDIT_HOURS'];
-	  $schd_info[$j]['days'] = '';
-	  $schd_info[$j]['startend'] = '';
-	  $schd_info[$j]['loc'] = '';	  
-	  $schd_info[$j]['instructors'] = '';
-	  $j++;
+	if(find_info('Spring 2015',$schd_info) === false) {
+		$spring = array();
+		$local_mysql1->getMyEnrollments($spring, $uname, $spring_code);
+
+		$j = sizeof($schd_info);
+		for ($i = 0; $i < sizeof($spring); $i++) {
+		  $crns = array($spring[$i]['crn']);
+		  $courses = array();
+		  $course_class->getCoursesByCRN($courses , $spring[$i]['term'], $crns, $additional);
+		  $schd_info[$j]['term_desc'] = 'Spring 2015';
+		  $schd_info[$j]['course'] = $courses[0]['SUBJ_CODE'] . ' ' .
+		    $courses[0]['CRSE_NUMBER'] . ' ' .
+		    $courses[0]['SECTION_NUMBER'];
+		  $schd_info[$j]['title'] = $courses[0]['LONG_TITLE'];
+		  $schd_info[$j]['credit_hours'] = $courses[0]['CREDIT_HOURS'];
+		  $schd_info[$j]['days'] = '';
+		  $schd_info[$j]['startend'] = '';
+		  $schd_info[$j]['loc'] = '';	  
+		  $schd_info[$j]['instructors'] = '';
+		  $j++;
+		}
 	}
 
-	$data = array();
 	$urls = array();
 	$sort = array();
-        $columns = array ('crn' => 'CRN',
-			  'term_desc' => 'Semester',
+        $columns = array ('term_desc' => 'Semester',
 			  'course' => 'Course Name',
 			  'title' => 'Course Title',
 			  'credit_hours' => 'Units',
@@ -101,14 +102,16 @@ if(isset($uname))
 	  $t_columns[$key]['key'] = $value;
           $t_columns[$key]['label'] = $value;
           $t_columns[$key]['sortable'] = "true";
-          if ($key == 'credit_hours' || $key == 'days') {
+          if ($key == 'credit_hours' || $key == 'days' || $key == 'crn') {
 	    $t_columns[$key]['width'] = '50';
+	  }
+          else if ($key == 'term_desc' || $key == 'course') {
+	    $t_columns[$key]['width'] = '75';
 	  }
 	  else {
 	    $t_columns[$key]['width'] = '150';
 	  }
 	}
-
   
     $yui = new yuitable("stu_schd");
     $yui->setColumns($t_columns);
@@ -132,7 +135,7 @@ if(isset($uname))
                         echo "<td> </td>";
 			echo "<td><a href=\"test_scores.php?name=$uname\">"."Test Scores</td>";
                         echo "<td> </td>";
-			echo "<td><a href=\"stu_sched.php?name=$uname\">"."Schedule</td>";
+			echo "<td><a href=\"stu_sched.php?name=$uname\">"."Schedules</td>";
                         echo "<td> </td>";
 			echo "<td><a href=\"advisor_comments.php?name=$uname\">"."Advisor Comments</td>";
                          ?>

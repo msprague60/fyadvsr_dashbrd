@@ -22,12 +22,12 @@ if ($submit != "") {
   //  echo "role=".$role;
   if (trim($role) != '') {
     if ($role == DEFAULT_ID) {
-      $_SESSION['my_role'] = $role;
+      $_SESSION['role'] = $role;
       printStatus("Successfully updated the information.");
     }
     else {
       if ($mysql->isValidRole($role) == 1) {
-	$_SESSION['my_role'] = $role;
+	$_SESSION['role'] = $role;
 	printStatus("Successfully updated the information.");
       }
       else {

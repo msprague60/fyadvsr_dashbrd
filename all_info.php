@@ -1,4 +1,3 @@
-
 <?php
 
 if (!isset($_POST['no_navs'])) {
@@ -34,11 +33,9 @@ if ($no_navs != "1") {
 printPageTitle("Advisee Lookup","<center>Use the form below to view information about a specific student you are advising.</center>");
 
 $term_code = '201409';
-// mms hardcode term description for now
-$term_desc = 'Fall 2014';
 $spring_code = '201502';
 
-$my_role = $_SESSION['my_role'];
+$my_role = $_SESSION['role'];
 $advisor = $_SESSION['username'];
 
 //echo "advisor=".$advisor;
@@ -99,36 +96,38 @@ if(isset($uname))
         $test_info = array();
 	$local_oracle->getStudentTestScores($test_info, $stu_pidm);
 
-        $sched_info = array();
-	$local_oracle->getStudentSchedule($sched_info, $stu_pidm, $term_code);
+        $sched1_info = array();
+	$local_oracle1->getStudentSchedule($sched1_info, $stu_pidm, $term_code);
+        $sched2_info = array();
+	$local_oracle1->getStudentSchedule($sched2_info, $stu_pidm, $spring_code);
 
         $fyclass_info = array();
-	$local_oracle->getFYCourses($fyclass_info, $stu_pidm);
-	//	print_r($fyclass_info);
+	$local_oracle1->getFYCourses($fyclass_info, $stu_pidm);
+
+	if(find_info('Spring 2015',$fyclass_info) === false) {
 	$spring = array();
 	$local_mysql->getMyEnrollments($spring, $uname, $spring_code);
-	//	print_r($spring);
+
 	$j = sizeof($fyclass_info);
 	for ($i = 0; $i < sizeof($spring); $i++) {
 	  $crns = array($spring[$i]['crn']);
 	  $courses = array();
 	  $course_class->getCoursesByCRN($courses , $spring[$i]['term'], $crns, $additional);
-	  //	  print_r($courses);
-	  $fyclass_info[$j]['CRN'] = $courses[0]['CRN'];
-	  $fyclass_info[$j]['TERM_DESC'] = 'Spring 2015';
-	  $fyclass_info[$j]['COURSE'] = $courses[0]['SUBJ_CODE'] . ' ' .
+	  //	  $fyclass_info[$j]['crn'] = $courses[0]['CRN'];
+	  $fyclass_info[$j]['term_desc'] = 'Spring 2015';
+	  $fyclass_info[$j]['course'] = $courses[0]['SUBJ_CODE'] . ' ' .
 	    $courses[0]['CRSE_NUMBER'] . ' ' .
 	    $courses[0]['SECTION_NUMBER'];
-	  $fyclass_info[$j]['TITLE'] = $courses[0]['LONG_TITLE'];
-	  $fyclass_info[$j]['CREDIT_HOURS'] = $courses[0]['CREDIT_HOURS'];
-	  $fyclass_info[$j]['DAYS'] = '';
-	  $fylass_info[$j]['STARTEND'] = '';
-	  $fyclass_info[$j]['LOC'] = '';	  
-	  $fyclass_info[$j]['INSTRUCTORS'] = '';
+	  $fyclass_info[$j]['title'] = $courses[0]['LONG_TITLE'];
+	  $fyclass_info[$j]['credit_hours'] = $courses[0]['CREDIT_HOURS'];
+	  $fyclass_info[$j]['days'] = '';
+	  $fylass_info[$j]['startend'] = '';
+	  $fyclass_info[$j]['loc'] = '';	  
+	  $fyclass_info[$j]['instructors'] = '';
 	  $j++;
 	}
-	//	echo 'fyclass_info=';
-	//	print_r($fyclass_info);
+	}
+
 	if(strlen($adv_comments) > 2000)
 	  {
 	    $adv_comments = substr($adv_comments, 0, 2000);
@@ -173,11 +172,11 @@ if(isset($uname))
  }
 	
  //All readers should have a role. If a role is not found for the username then kick them out.
-// if($my_role == '')
-// {
-//     echo "<center><br>You are not permitted to access this application.</center>";
-//     exit;
-// }
+ if($my_role == '')
+ {
+     echo "<center><br>You are not permitted to access this application.</center>";
+     exit;
+ }
  
  	$readOnly = 'readonly="readonly"';
  	$disabled = 'disabled="disabled"';
@@ -536,42 +535,81 @@ if(isset($uname))
  
  function printStudentScheduleBlock()
  {
- 	global $sched_info;
- 	global $my_role,$term_desc;
+   global $sched1_info, $sched2_info;
+ 	global $my_role;
  	
- 	echo "<table class='column_table' id='student_schedule_block' style='border:1px solid black;' cellpadding='2px'>";
+ 	echo "<table class='column_table' id='student_schedule1_block' style='border:1px solid black;' cellpadding='2px'>";
  		echo "<thead>";
  			echo "<tr class='table_head'>";
- 				echo "<th align='left' colspan=4>Student Schedule ".$term_desc."</th>";
- 				echo "<td align='right' colspan=4>(<a href='javascript:showHideBlock(\"schedule\")'>Show/Hide</a>)</td>";
+ 				echo "<th align='left' colspan=5>Student Schedule ".$sched1_info[0]['TERM_DESC']."</th>";
+ 				echo "<td align='right' colspan=5>(<a href='javascript:showHideBlock(\"schedule1\")'>Show/Hide</a>)</td>";
  			echo "</tr>";
  		echo "</thead>";
  		echo "<tbody>";
                 		echo "<tr>";
- 		        	echo "<td style='border:1px solid black;'><b>CRN:</b></td>";
- 			        echo "<td style='border:1px solid black;'><b>Course Name:</b></td>";
+ 		        	echo "<td style='border:1px solid black;'><b>Sem:</b></td>";
+				// 		        	echo "<td style='border:1px solid black;'><b>CRN:</b></td>";
+ 			        echo "<td style='border:1px solid black;'><b>Course:</b></td>";
  			        echo "<td style='border:1px solid black;'><b>Course Title:</b></td>";
- 			        echo "<td style='border:1px solid black;'><b>Credit Hours:</b></td>";
+ 			        echo "<td style='border:1px solid black;'><b>Credit Hrs:</b></td>";
  			        echo "<td style='border:1px solid black;'><b>Days:</b></td>";
  			        echo "<td style='border:1px solid black;'><b>Time:</b></td>";
  			        echo "<td style='border:1px solid black;'><b>Room:</b></td>";
  			        echo "<td style='border:1px solid black;'><b>Instructors:</b></td>";
       		                echo "</tr>";
-                	for($i = 0; $i<sizeof($sched_info);$i++)
+                	for($i = 0; $i<sizeof($sched1_info);$i++)
  	                  { 
       	                	echo "<tr>";
-		        	echo "<td style='border:1px solid black;'>".$sched_info[$i]['CRN']."</td>";
- 		        	echo "<td style='border:1px solid black;'>".$sched_info[$i]['COURSE']."</td>";
- 		        	echo "<td style='border:1px solid black;'>".$sched_info[$i]['TITLE']."</td>";
- 		        	echo "<td style='border:1px solid black;'>".$sched_info[$i]['CREDIT_HOURS']."</td>";
- 		        	echo "<td style='border:1px solid black;'>".$sched_info[$i]['DAYS']."</td>";
- 		        	echo "<td style='border:1px solid black;'>".$sched_info[$i]['STARTEND']."</td>";
- 		        	echo "<td style='border:1px solid black;'>".$sched_info[$i]['LOC']."</td>";
- 		        	echo "<td style='border:1px solid black;'>".$sched_info[$i]['INSTRUCTORS']."</td>";
+		        	echo "<td style='border:1px solid black;'>".$sched1_info[$i]['TERM_DESC']."</td>";
+				//		        	echo "<td style='border:1px solid black;'>".$sched1_info[$i]['CRN']."</td>";
+ 		        	echo "<td style='border:1px solid black;'>".$sched1_info[$i]['COURSE']."</td>";
+ 		        	echo "<td style='border:1px solid black;'>".$sched1_info[$i]['TITLE']."</td>";
+ 		        	echo "<td style='border:1px solid black;'>".$sched1_info[$i]['CREDIT_HOURS']."</td>";
+ 		        	echo "<td style='border:1px solid black;'>".$sched1_info[$i]['DAYS']."</td>";
+ 		        	echo "<td style='border:1px solid black;'>".$sched1_info[$i]['STARTEND']."</td>";
+ 		        	echo "<td style='border:1px solid black;'>".$sched1_info[$i]['LOC']."</td>";
+ 		        	echo "<td style='border:1px solid black;'>".$sched1_info[$i]['INSTRUCTORS']."</td>";
       		                echo "</tr>";
 			  }
  		echo "</tbody>";
  	echo "</table>";
+        if(sizeof($sched2_info) > 0) {
+ 	echo "<table class='column_table' id='student_schedule2_block' style='border:1px solid black;' cellpadding='2px'>";
+ 		echo "<thead>";
+ 			echo "<tr class='table_head'>";
+ 				echo "<th align='left' colspan=5>Student Schedule ".$sched2_info[0]['TERM_DESC']."</th>";
+ 				echo "<td align='right' colspan=5>(<a href='javascript:showHideBlock(\"schedule2\")'>Show/Hide</a>)</td>";
+ 			echo "</tr>";
+ 		echo "</thead>";
+ 		echo "<tbody>";
+                		echo "<tr>";
+ 		        	echo "<td style='border:1px solid black;'><b>Sem:</b></td>";
+				// 		        	echo "<td style='border:1px solid black;'><b>CRN:</b></td>";
+ 			        echo "<td style='border:1px solid black;'><b>Course:</b></td>";
+ 			        echo "<td style='border:1px solid black;'><b>Course Title:</b></td>";
+ 			        echo "<td style='border:1px solid black;'><b>Credit Hrs:</b></td>";
+ 			        echo "<td style='border:1px solid black;'><b>Days:</b></td>";
+ 			        echo "<td style='border:1px solid black;'><b>Time:</b></td>";
+ 			        echo "<td style='border:1px solid black;'><b>Room:</b></td>";
+ 			        echo "<td style='border:1px solid black;'><b>Instructors:</b></td>";
+      		                echo "</tr>";
+                	for($i = 0; $i<sizeof($sched2_info);$i++)
+ 	                  { 
+      	                	echo "<tr>";
+		        	echo "<td style='border:1px solid black;'>".$sched2_info[$i]['TERM_DESC']."</td>";
+				//		        	echo "<td style='border:1px solid black;'>".$sched2_info[$i]['CRN']."</td>";
+ 		        	echo "<td style='border:1px solid black;'>".$sched2_info[$i]['COURSE']."</td>";
+ 		        	echo "<td style='border:1px solid black;'>".$sched2_info[$i]['TITLE']."</td>";
+ 		        	echo "<td style='border:1px solid black;'>".$sched2_info[$i]['CREDIT_HOURS']."</td>";
+ 		        	echo "<td style='border:1px solid black;'>".$sched2_info[$i]['DAYS']."</td>";
+ 		        	echo "<td style='border:1px solid black;'>".$sched2_info[$i]['STARTEND']."</td>";
+ 		        	echo "<td style='border:1px solid black;'>".$sched2_info[$i]['LOC']."</td>";
+ 		        	echo "<td style='border:1px solid black;'>".$sched2_info[$i]['INSTRUCTORS']."</td>";
+      		                echo "</tr>";
+			  }
+ 		echo "</tbody>";
+ 	echo "</table>";
+	}
  }
  
  function printFYClassesBlock()
@@ -582,14 +620,15 @@ if(isset($uname))
  	echo "<table class='column_table' id='first_year_classes_block' style='border:1px solid black;' cellpadding='2px'>";
  		echo "<thead>";
  			echo "<tr class='table_head'>";
- 				echo "<th align='left' colspan=4>Student First Year Seminar and Writing Classes</th>";
- 				echo "<td align='right' colspan=4>(<a href='javascript:showHideBlock(\"fyclasses\")'>Show/Hide</a>)</td>";
+ 				echo "<th align='left' colspan=5>Student First Year Seminar and Writing Classes</th>";
+ 				echo "<td align='right' colspan=5>(<a href='javascript:showHideBlock(\"fyclasses\")'>Show/Hide</a>)</td>";
  			echo "</tr>";
  		echo "</thead>";
  		echo "<tbody>";
                 		echo "<tr>";
- 		        	echo "<td style='border:1px solid black;'><b>Term:</b></td>";
- 			        echo "<td style='border:1px solid black;'><b>Course Name:</b></td>";
+ 		        	echo "<td style='border:1px solid black;'><b>Sem:</b></td>";
+				// 		        	echo "<td style='border:1px solid black;'><b>CRN:</b></td>";
+ 			        echo "<td style='border:1px solid black;'><b>Course:</b></td>";
  			        echo "<td style='border:1px solid black;'><b>Course Title:</b></td>";
  			        echo "<td style='border:1px solid black;'><b>Credit Hours:</b></td>";
  			        echo "<td style='border:1px solid black;'><b>Days:</b></td>";
@@ -601,6 +640,7 @@ if(isset($uname))
  	                  { 
       	                	echo "<tr>";
 		        	echo "<td style='border:1px solid black;'>".$fyclass_info[$i]['TERM_DESC']."</td>";
+				//		        	echo "<td style='border:1px solid black;'>".$fyclass_info[$i]['CRN']."</td>";
  		        	echo "<td style='border:1px solid black;'>".$fyclass_info[$i]['COURSE']."</td>";
  		        	echo "<td style='border:1px solid black;'>".$fyclass_info[$i]['TITLE']."</td>";
  		        	echo "<td style='border:1px solid black;'>".$fyclass_info[$i]['CREDIT_HOURS']."</td>";
@@ -713,8 +753,8 @@ if(isset($uname))
 #overall_comments_block, #decision_block, #voting_block, #reader_entered_codes, #demographic_block, #secondary_block,
 #family_block, #reqtesting_block, #opttesting_block, #extracurricular_block, #active_contact_block, #student_address_block, #selfreported_block,
 #student_detail_block,#reg_comments_block,#degree_audit_block,#dean_comments_block,#current_courses_block,#eighteen_units_block,#concat_reg_comments_block,
-#concat_dean_comments_block,#student_info_block,#student_advising_block,#test_scores_block,#adv_comments_block,#concat_adv_comments_block,#student_schedule_block,
-#first_year_classes_block
+#concat_dean_comments_block,#student_info_block,#student_advising_block,#test_scores_block,#adv_comments_block,#concat_adv_comments_block,#student_schedule1_block,
+#student_schedule2_block,#first_year_classes_block
 {
 	margin-bottom:15px;
 	width:<?=$column_width-10?>px;
@@ -909,13 +949,24 @@ window.onload = function()
 		  }
 		  break;
 		  
-	  case 'schedule':
+	  case 'schedule1':
 		  if(schedule == 0)
 		  {
-			  $('#student_schedule_block tbody').hide();
+			  $('#student_schedule1_block tbody').hide();
 			  schedule  = 1;
 		  } else {
-			  $('#student_schedule_block tbody').show();
+			  $('#student_schedule1_block tbody').show();
+			  schedule = 0;
+		  }
+		  break;
+		  
+	  case 'schedule2':
+		  if(schedule == 0)
+		  {
+			  $('#student_schedule2_block tbody').hide();
+			  schedule  = 1;
+		  } else {
+			  $('#student_schedule2_block tbody').show();
 			  schedule = 0;
 		  }
 		  break;
@@ -1034,7 +1085,7 @@ window.onload = function()
 		?>
 		<table width='100%'>
 		    <tr>
-		        <td align=center>
+		        <td align=right>
 		            <input type='submit' name='submit' value='Submit Notes' />
 		        </td>
 		    </tr>

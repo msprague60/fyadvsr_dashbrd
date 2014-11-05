@@ -57,6 +57,9 @@ if (trim($_SESSION['role']) == '') {
    $my_role = $_SESSION['role'];
  }
 
+//echo 'init my_role='.$my_role;
+//echo 'session role='.$_SESSION['role'];
+
 $local_mysql = new local_mysql_functions($mysql_link, $mysql);
 $local_mysql1 = new local_mysql_functions($mysql_link1, $mysql1);
 
@@ -82,8 +85,6 @@ if (defined('ORACLE_SRV1')) {
     $oracle1 = new oracle_functions(ORACLE_SRV1,ORACLE_USER1,ORACLE_PWD1,ORACLE_NAME1,ORACLE_CHARSET1);
 
     $oracle_link1 = $oracle1->connectToDb();
-
-    $course_class = new courses($oracle_link1,$oracle1,'future');
 
     $local_oracle1 = new local_oracle_functions($oracle_link1, $oracle1);
 

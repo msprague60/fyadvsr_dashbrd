@@ -75,7 +75,6 @@ if(isset($uname))
 	  }
 	}
 
-  
     $yui = new yuitable("test_scores");
     $yui->setColumns($t_columns);
     //    print "<br>\n";
@@ -98,7 +97,7 @@ if(isset($uname))
                         echo "<td> </td>";
 			echo "<td><a href=\"fy_classes.php?name=$uname\">"."FY Courses</td>";
                         echo "<td> </td>";
-			echo "<td><a href=\"stu_sched.php?name=$uname\">"."Schedule</td>";
+			echo "<td><a href=\"stu_sched.php?name=$uname\">"."Schedules</td>";
                         echo "<td> </td>";
 			echo "<td><a href=\"advisor_comments.php?name=$uname\">"."Advisor Comments</td>";
                          ?>

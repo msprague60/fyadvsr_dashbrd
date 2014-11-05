@@ -45,7 +45,7 @@ $uname = $_GET['name'];
 
 //hardcode term for now
 $term_code = '201409';
-$term_desc = 'Fall 2014';
+$spring_term = '201502';
 
 if(isset($uname))
 {
@@ -56,38 +56,14 @@ if(isset($uname))
 	//	$stu_pidm = 30654230;
         $stu_pidm = $student_info[0]['PIDM'];
 
-        $schd_info = array();
-	$local_oracle->getStudentSchedule($schd_info, $stu_pidm, $term_code);
+        $schd1_info = array();
+        $schd2_info = array();
+	$local_oracle1->getStudentSchedule($schd1_info, $stu_pidm, $term_code);
+	$local_oracle1->getStudentSchedule($schd2_info, $stu_pidm, $spring_term);
 
-        $days = $schd_info[0]['DAYS1'];
-        if ($schd_info[0]['DAYS2'] != "") {
-	  $days .= "<br>".$schd_info[0]['DAYS2'];
-	}
-        if ($schd_info[0]['DAYS3'] != "") {
-	  $days .= "<br>".$schd_info[0]['DAYS3'];
-	}
-
-        $startend = $schd_info[0]['STARTEND1'];
-        if ($schd_info[0]['STARTEND2'] != "") {
-	  $days .= "<br>".$schd_info[0]['STARTEND2'];
-	}
-        if ($schd_info[0]['STARTEND3'] != "") {
-	  $days .= "<br>".$schd_info[0]['STARTEND3'];
-	}
-
-        $loc = $schd_info[0]['LOC1'];
-        if ($schd_info[0]['LOC2'] != "") {
-	  $days .= "<br>".$schd_info[0]['LOC2'];
-	}
-        if ($schd_info[0]['LOC3'] != "") {
-	  $days .= "<br>".$schd_info[0]['LOC3'];
-	}
-
-
-	$data = array();
 	$urls = array();
 	$sort = array();
-        $columns = array ('crn' => 'CRN',
+        $columns = array ('term_desc' => 'Semester',
 			  'course' => 'Course Name',
 			  'title' => 'Course Title',
 			  'credit_hours' => 'Units',
@@ -103,8 +79,11 @@ if(isset($uname))
 	  $t_columns[$key]['key'] = $value;
           $t_columns[$key]['label'] = $value;
           $t_columns[$key]['sortable'] = "true";
-          if ($key == 'credit_hours' || $key == 'days') {
+          if ($key == 'credit_hours' || $key == 'days' || $key == 'crn') {
 	    $t_columns[$key]['width'] = '50';
+	  }
+          else if ($key == 'term_desc') {
+	    $t_columns[$key]['width'] = '80';
 	  }
 	  else {
 	    $t_columns[$key]['width'] = '150';
@@ -112,8 +91,14 @@ if(isset($uname))
 	}
 
   
-    $yui = new yuitable("stu_schd");
-    $yui->setColumns($t_columns);
+    $yui1 = new yuitable("stu_schd1");
+    $yui1->setColumns($t_columns);
+
+    if(sizeof($schd2_info) > 0) {
+    $yui2 = new yuitable("stu_schd2");
+    $yui2->setColumns($t_columns);
+    }
+
     //    print "<br>\n";
 	
 }
@@ -140,9 +125,10 @@ if(isset($uname))
                          ?>
 			</tr>
 		</table>
+                <br><br>
 	</div>
 	<div id="results">
-	<?
+	<?php
  	echo "<table class='column_table' id='student_info_block'>";
  		echo "<tr>";
  			echo "<td align='right'><span style='font-size:16px'><b> </b></span></td>";
@@ -157,12 +143,52 @@ if(isset($uname))
  			echo "<td align='right'><span style='font-size:16px'><b> </b></span></td>";
  		echo "</tr>";
  	echo "</table>";
+
 	?>
 	</div>
-	<div id="tests">
-	<?
-                $yui->table($schd_info,$urls,$sort,0,$term_desc);
-		$yui->printFooter(); 
+        <div id="fall_title">
+	<?php
+ 	echo "<table class='column_table' id='fall_title_block'>";
+ 		echo "<tr>";
+ 			echo "<td align='right'><span style='font-size:16px'><b> </b></span></td>";
+ 		echo "</tr>";
+ 		echo "<tr>";
+        	echo "<td><span style='font-size:16px'><b>".$schd1_info[0]['TERM_DESC']."</b></span></td>";
+//		echo "<td><span style='font-size:16px'><b>Fall 2014</b></span></td>";
+ 		echo "</tr>";
+ 		echo "<tr>";
+ 			echo "<td align='right'><span style='font-size:16px'><b> </b></span></td>";
+ 		echo "</tr>";
+ 	echo "</table>";
+
+	?>
+        </div>
+	<div id="fall_sched">
+	<?php
+	$yui1->table($schd1_info,$urls,$sort,0,$sort_text);
+        $yui1->printFooter();
+	?>
+	</div>
+        <div id="spring_title">
+	<?php
+ 	echo "<table class='column_table' id='spring_title_block'>";
+ 		echo "<tr>";
+ 			echo "<td align='right'><span style='font-size:16px'><b> </b></span></td>";
+ 		echo "</tr>";
+ 		echo "<tr>";
+        	echo "<td><span style='font-size:16px'><b>".$schd2_info[0]['TERM_DESC']."</b></span></td>";
+ 		echo "</tr>";
+ 		echo "<tr>";
+ 			echo "<td align='right'><span style='font-size:16px'><b> </b></span></td>";
+ 		echo "</tr>";
+ 	echo "</table>";
+
+	?>
+        </div>
+	<div id="spring_sched">
+	<?php
+	$yui2->table($schd2_info,$urls,$sort,0,$sort_text);
+	$yui2->printFooter(); 
 	?>
 	</div>
 </center>

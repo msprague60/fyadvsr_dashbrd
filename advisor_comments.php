@@ -281,7 +281,7 @@ tinyMCE.init({
                         echo "<td> </td>";
 			echo "<td><a href=\"fy_classes.php?name=$uname\">"."FY Courses</td>";
                         echo "<td> </td>";
-			echo "<td><a href=\"stu_sched.php?name=$uname\">"."Schedule</td>";
+			echo "<td><a href=\"stu_sched.php?name=$uname\">"."Schedules</td>";
                          ?>
 			</tr>
 		</table>

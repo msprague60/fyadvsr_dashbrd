@@ -116,7 +116,7 @@ if (file_exists("/var/secure/fyadvsr_dashbrd/oracle1")) {
 
 define ("APP_TITLE", "First Year Advisor Dashboard");
 
-$proxies = array('msprague','jokeefe','gravisha');
+$proxies = array('msprague','jokeefe');
 
 /* Define Roles and Role Titles. Leave ADMIN_ID alone. Example roles are commented.*/
 // Please note that if you define a DEFAULT_ID that is not null, like 1, you need to define roles 
@@ -164,18 +164,22 @@ $generic_navigations[$i]['name'] = 'Advising Homepage';
 $generic_navigations[$i]['url'] = 'gen_info.php';
 
 $i++;
-$advisor_navigations[$i]['name'] = 'Dashboard Layout';
-$advisor_navigations[$i]['url'] = 'all_info.php';
-
-$generic_navigations[$i]['name'] = 'Dashboard Layout';
-$generic_navigations[$i]['url'] = 'all_info.php';
-
 $admin_navigations[$i]['name'] = 'Advising Homepage';
 $admin_navigations[$i]['url'] = 'gen_info.php';
 
+$advisor_navigations[$i]['name'] = 'View Mid Sememster Reports';
+$advisor_navigations[$i]['url'] = 'https://sparrow.wellesley.edu/mid_semester_rpt/ms_stu_report.php';
+
 $i++;
-$admin_navigations[$i]['name'] = 'Dashboard Layout';
+$admin_navigations[$i]['name'] = 'Advising Dashboard';
 $admin_navigations[$i]['url'] = 'all_info.php';
+
+$advisor_navigations[$i]['name'] = 'Advising Dashboard';
+$advisor_navigations[$i]['url'] = 'all_info.php';
+
+$i++;
+$admin_navigations[$i]['name'] = 'View Mid Sememster Reports';
+$admin_navigations[$i]['url'] = 'https://sparrow.wellesley.edu/mid_semester_rpt/ms_stu_report.php';
 
 $i++;
 $admin_navigations[$i]['name'] = 'Switch Roles';

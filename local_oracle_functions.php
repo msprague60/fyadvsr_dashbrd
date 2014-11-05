@@ -206,30 +206,31 @@ class local_oracle_functions {
 
   function getFYCourses(&$results,$pidm) {
     
-    $sql = "select c.crn,
-                   t.term_desc,
-                   c.subj_code||' '||crse_number||' '||section_number course,
-                   c.title,
-                   c.credit_hours,
-                   c.days1||decode(days2,null,'','<br>'||days2)||decode(days3,null,'','<br>'||days3) days,
-                   c.startend1||decode(startend2,null,'','<br>'||startend2)||decode(startend3,null,'','<br>'||startend3) startend,
-                   c.loc1||decode(loc2,null,'','<br>'||loc2)||decode(loc3,null,'','<br>'||loc3) loc,
-                   c.instructor1_printname||
-                      decode(c.instructor2_printname,null,null,', '||c.instructor2_printname)||
-                      decode(c.instructor3_printname,null,null,', '||c.instructor3_printname) instructors
-            from sdssdtl c,
-                 sdsregi_r r,
-                 sdssatr a,
-                 genterm t
-            where c.term_code = r.term
-            and c.term_code = a.term
-            and c.term_code = t.term
-            and c.crn = a.crn
-            and a.attribute in ('FYS','WFY')
-            and r.crn = c.crn
-            and c.subj_code <> 'LEAV'
-            and r.reg_status_code in ('RE','RW')
-            and r.pidm = :pidm";
+    $sql = "select stvterm_desc term_desc,
+            --crn,
+            subj_code||' '||crse_number||' '||section_number course,
+            title,
+            credit_hours,
+            days1||decode(days2,null,'','<br>'||days2)||decode(days3,null,'','<br>'||days3) days,
+            startend1||decode(startend2,null,'','<br>'||startend2)||decode(startend3,null,'','<br>'||startend3) startend,
+            loc1||decode(loc2,null,'','<br>'||loc2)||decode(loc3,null,'','<br>'||loc3) loc,
+            instructor1_printname||
+               decode(instructor2_printname,null,null,', '||instructor2_printname)||
+               decode(instructor3_printname,null,null,', '||instructor3_printname) instructors
+            from sfrstcr,
+                 wellesley.syv_course_section_fws2_mview,
+                 ssrattr,
+                 stvterm
+            where term_code = sfrstcr_term_code
+            and ssrattr_term_code = sfrstcr_term_code
+            and stvterm_code = sfrstcr_term_code
+            and sfrstcr_crn = ssrattr_crn
+            and ssrattr_attr_code in ('FYS','WFY')
+            and crn = sfrstcr_crn
+            and subj_code <> 'LEAV'
+            and sfrstcr_rsts_code in ('RE','RW')
+            and sfrstcr_pidm = :pidm
+            order by term_desc,course";
 
 
     $stmt = oci_parse($this->dblink,$sql) or die ("Error in parsing SQL in fy courses lookup");
@@ -354,23 +355,32 @@ class local_oracle_functions {
 
 
   function getStudentSchedule(&$results,$pidm,$term) {
+  //  function getStudentSchedule(&$results,$pidm) {
     
-    $sql = "select c.crn,
-                   c.subj_code||' '||crse_number||' '||section_number course,
-                   c.title,
-                   c.credit_hours,
-                   c.days1||decode(days2,null,'','<br>'||days2)||decode(days3,null,'','<br>'||days3) days,
-                   c.startend1||decode(startend2,null,'','<br>'||startend2)||decode(startend3,null,'','<br>'||startend3) startend,
-                   c.loc1||decode(loc2,null,'','<br>'||loc2)||decode(loc3,null,'','<br>'||loc3) loc,
-                   c.instructor1_printname||
-                      decode(c.instructor2_printname,null,null,', '||c.instructor2_printname)||
-                      decode(c.instructor3_printname,null,null,', '||c.instructor3_printname) instructors
-            from sdssdtl c,sdsregi_r r where c.term_code = :term
-            and c.term_code = r.term
-            and r.crn = c.crn
-            and c.subj_code <> 'LEAV'
-            and r.reg_status_code in ('RE','RW')
-            and r.pidm = :pidm";
+    $sql = "select stvterm_desc term_desc,
+                   --sfrstcr_crn crn,
+                   subj_code||' '||crse_number||' '||section_number course,
+                   title,
+                   credit_hours,
+                   days1||decode(days2,null,'','<br>'||days2)||decode(days3,null,'','<br>'||days3) days,
+                   startend1||decode(startend2,null,'','<br>'||startend2)||decode(startend3,null,'','<br>'||startend3) startend,
+                   loc1||decode(loc2,null,'','<br>'||loc2)||decode(loc3,null,'','<br>'||loc3) loc,
+                   instructor1_printname||
+                      decode(instructor2_printname,null,null,', '||instructor2_printname)||
+                      decode(instructor3_printname,null,null,', '||instructor3_printname) instructors
+            from sfrstcr,
+                 wellesley.syv_course_section_fws2_mview,
+                 stvterm
+            where sfrstcr_term_code = :term
+            and term_code = sfrstcr_term_code
+           -- where term_code = sfrstcr_term_code
+            and term_code = stvterm_code
+            and crn = sfrstcr_crn
+            and subj_code <> 'LEAV'
+            and sfrstcr_rsts_code in ('RE','RW')
+            and sfrstcr_pidm = :pidm
+            order by term_code,subj_code";
+
 
     $stmt = oci_parse($this->dblink,$sql) or die ("Error in parsing SQL in student schedule lookup");
 
@@ -414,8 +424,7 @@ class local_oracle_functions {
       from wellesley.fyadv_comments 
             where term_code = :current_term
             and stu_pidm = :stu_pidm
-            and adv_pidm = :adv_pidm
-            order by activity_date desc";
+            and adv_pidm = :adv_pidm";
 
     $stmt = oci_parse($this->dblink,$sql) or die ("Error in parsing SQL in adv comments lookup");
     

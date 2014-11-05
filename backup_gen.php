@@ -27,11 +27,11 @@ include('config.php');
 <?php 
 
 //Kick out non-admin users
- //if($my_role != ADMIN_ID && $my_role != 1)
- //{
- //	echo "<center>You are not allowed to access this page.<br><a href='logout.php'>Logout Here</a></center>";
- //	exit;
- //}
+if($my_role != ADMIN_ID && $my_role != ADMIN_ACAD)
+{
+	echo "<center>You are not allowed to access this page.<br><a href='logout.php'>Logout Here</a></center>";
+	exit;
+}
 
 if ($no_navs == "") {
 	printNavigation1($my_role, $roles, $role_titles, $master_navigations,1);
@@ -39,37 +39,14 @@ if ($no_navs == "") {
 
 printPageTitle("Advisee Lookup","<center>Use the form below to view general information about a specific student you are advising.</center>");
 
-//$advisor = 'avelench';
-// mms hardcode term for now
-$term_code = '201409';
+// hardcode advisor for now
+$advisor = 'avelench';
 
-$my_role = $_SESSION['role'];
-$advisor = $_SESSION['username'];
+//$advisor = $_SESSION['username'];
+$uname = $_GET['name'];
 
-//echo "advisor=".$advisor;
-
-$uname = $_POST['advisee_selected']?$_POST['advisee_selected']:$_GET['advisee_selected'];
-if ($uname == '') {
-  $uname = $_GET['name'];
- }
-
-$a_selected = $uname;
-//echo "uname=".$uname;
-//echo "my_role=".$my_role;
-
-$temp1 = array();
-$local_oracle->getPidmByUser($temp1, $advisor);
-$adv_pidm = $temp1[0]['PIDM'];
-
-//echo "adv_pidm=".$adv_pidm;
-
-$advisees = array();
-if ($my_role == ADMIN_ID) {
-$local_oracle1->getAllStudents($advisees, $term_code);
- }
- else {
-$local_oracle1->getStudentsbyAdvisor($advisees, $adv_pidm, $term_code);
- }
+$adv_pidm = '';
+$local_oracle->getPidmByUser($adv_pidm, $advisor);
 
 if(isset($uname))
 {
@@ -78,11 +55,6 @@ if(isset($uname))
 	$local_oracle->getGeneralData($student_info, $uname);
 
         $local_mysql1->getPreferredPronoun($pronoun,$uname);
-
-        $temp2 = array();
-        $local_oracle1->getAdvisor($temp2,$uname,$term_code);
-        $stu_advisor = $temp2[0]['ADVISOR_NAME'];
-
 	//	echo 'pronoun='.$pronoun;
 
 	foreach($values as $key=>$value)
@@ -214,10 +186,6 @@ if(isset($uname))
 	$data[$i]['two'] = $student_info[0]['DATE_OF_BIRTH'];
 	$i++;
 	
-	$data[$i]['one'] = "<b>Academic Advisor</b>";
-	$data[$i]['two'] = $stu_advisor;
-	$i++;
-	
 	$t_columns = array();
 	foreach($columns as $key=>$value)
 	{
@@ -228,9 +196,31 @@ if(isset($uname))
 	}
 	
 	$t_columns['two']['width'] = '500';
+	//	$yui = new yuitable('formtable');
+	//	$yui->setColumns($t_columns);
 
-	$yui = new yuitable('formtable');
-	$yui->setColumns($t_columns);
+	$mdata = array();
+	$murls = array();
+	$msort = array();
+	//	$columns = array('one'=>'one', 'two'=>'two');
+	$mcolumns = array('one'=>'one');
+	$i = 0;
+	
+	$murls[$i] = "advising_report.php?name=".$uname;
+	$mdata[$i] = "<b>Advising Information</b>";
+	$i++;
+	
+	$m_columns = array();
+	foreach($mcolumns as $key=>$value)
+	{
+		$m_columns[$key]['key'] = $value;
+		$t_columns[$key]['lable'] = $value;
+		$t_columns[$key]['width'] = '100';
+		$t_columns[$key]['sortable'] = 'false';
+	}
+	
+	//	$yui = new yuitable('formtable');
+	//	$yui->setColumns($t_columns);
 
 	
 }
@@ -239,78 +229,28 @@ if(isset($uname))
 
 <center>
 	<div id="entry">
-        <?php
-        if ($my_role == ADMIN_ID) {
-           echo "<form name='student_search' method='POST' action=''>";
-           echo "<table>";
-           echo "<tr>";
-           echo "<td>Start Entering the last name of a student, or select from the drop down list below:</td>";
-           echo "<td><input type=\"text\" name=\"name\" value=\"\" onKeyUp=\"fyearLookup(this.value)\"/></td>";
-           echo "</tr>";
-           echo "</table>";
-           echo "</form>";
-        }
-        ?>
-	</div>
-	<div id="student_results"></div>
-        <div id="student_dropdown">
-	<form name='student_list' method='POST' action=''>
-        <?php
- 	echo "<table class='column_table' id='student_selection_block'>";
-	echo "<tr>";
-
-        echo "<td align='right'><span style='font-size:14px'><b>Advisee:</b><select id=\"advisee_selected\" name=\"advisee_selected\" onChange=\"this.form.submit();\">";
-
-	for ($i = 0; $i< sizeof($advisees) ; $i++) 
-        {
-	  $selected = "";
-	  if ($a_selected == $advisees[$i]['NAME']) 
-          {
-	    $selected = " selected ";
-	  }
-          echo "<option value=\"".$advisees[$i]['NAME']."\" $selected >".
-          $advisees[$i]['LAST_NAME'].", ".$advisees[$i]['FIRST_NAME']." (".$advisees[$i]['EMAIL'].") - ".$advisees[$i]['ID']."</option>\n";
-	}
-	echo "</select>\n";
-	echo "</tr>";
-
-	echo "<tr>";
-	echo "<td align='right'><br></span></td>";
-	echo "<tr>";
-       	echo "<td align='right'>  </span></td>";
-        echo "<td align=left>";
-        echo "<input type='submit' name='submit' value='Select' />";
-        echo "</td>";
-	echo "</tr>";
-	echo "<tr>";
-	echo "<td align='right'><br></span></td>";
-	echo "</tr>";
- 	echo "</table>";
-        ?>
-	</form>
-        </div>
-	<div id="menu">
+	<form name='student_search' method='POST' action=''>
 		<table>
 			<tr>
-                        <td><br></td>
-                        </tr>
-			<tr>
-                        <?php
-			echo "<td><a href=\"advising_report.php?name=$uname\">"."Advising Information</td>";
-                        echo "<td> </td>";
-			echo "<td><a href=\"test_scores.php?name=$uname\">"."Test Scores</td>";
-                        echo "<td> </td>";
-			echo "<td><a href=\"fy_classes.php?name=$uname\">"."FY Courses</td>";
-                        echo "<td> </td>";
-			echo "<td><a href=\"stu_sched.php?name=$uname\">"."Schedules</td>";
-                        echo "<td> </td>";
-			echo "<td><a href=\"advisor_comments.php?name=$uname\">"."Advisor Comments</td>";
-                         ?>
+				<td>Start Entering the last name of a Student:</td>
+				<td><input type="text" name="name" value="" onKeyUp="fyearLookup(this.value)"/></td>
 			</tr>
 		</table>
+	</form>
 	</div>
+										<!--	<div id="student_menu"> -->
+  //	<?
+  //												$yui = new yuitable('menutable');
+  //									                        $yui->setColumns($m_columns);
+  //									                        $yui->table($mdata, $murls, $msort, 0);
+  //									                        $yui->printFooter(); 
+  //										?>
+  <!--   </div>  -->
+	<div id="student_results"> </div>
 	<div id="results">
-	<?php
+	<?
+			$yui = new yuitable('formtable');
+                        $yui->setColumns($t_columns);
                         $yui->table($data, $urls, $sort, 0);
                         $yui->printFooter(); 
 	?>

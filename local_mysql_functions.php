@@ -64,16 +64,16 @@ class local_mysql_functions {
 
 
   }
-
+  
   function getMyEnrollments(&$data, $user, $term_code = '') {
-    
+
     $additional = '';
     if (trim($term_code) != '') {
       $additional = " and term=? ";
     }
     $data = array();
-    $sql = "select * from checklist.enrollments where username=? $additional order by course";
-    
+    $sql = "select * from enrollments where username=? $additional order by course";
+
     $stmt = $this->dblink->prepare($sql) or die ("Error accessing info from enrollments database table");
     if (trim($term_code) != '') {
       $stmt->bind_param("ss",$user,$term_code);
@@ -82,19 +82,17 @@ class local_mysql_functions {
       $stmt->bind_param("s",$user);
     }
     $stmt->execute() or die ("Error executing a sql statement in deleting into interviewers table " );
-    
+
     $fieldnames = array();
     $result = array();
     $this->mysql->fetchArraySetup($stmt,$result, $fieldnames);
-    
+
     $j = 0;
     while ($stmt->fetch()) {
       for ($i = 0; $i < sizeof($fieldnames); $i++) {
-	$data[$j][$fieldnames[$i]] = $result[$i];
+        $data[$j][$fieldnames[$i]] = $result[$i];
       }
-      $j++;  
+      $j++;
     }
-    
   }
-  
 }  
